@@ -197,6 +197,11 @@ HWTEST_F(PrivacyManagerServiceTest, Dump001, TestSize.Level0)
     args.emplace_back(Str8ToStr16("-t"));
     args.emplace_back(Str8ToStr16("123")); // 123: invalid tokenId
     ASSERT_EQ(RET_SUCCESS, privacyManagerService_->Dump(fd, args));
+
+    args.clear();
+    args.emplace_back(Str8ToStr16("-t"));
+    args.emplace_back(Str8ToStr16("4294967296")); // outside AccessTokenID range
+    ASSERT_NE(RET_SUCCESS, privacyManagerService_->Dump(fd, args));
 }
 
 /**

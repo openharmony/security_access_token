@@ -15,8 +15,10 @@
 
 #include "privacy_manager_service.h"
 
+#include <charconv>
 #include <cinttypes>
 #include <cstring>
+#include <limits>
 #include <stack>
 
 #include "access_token.h"
@@ -530,9 +532,14 @@ int32_t PrivacyManagerService::ResponseDumpCommand(int32_t fd, const std::vector
     if (args.size() < 2) { // 2 :need two args 0:command 1:tokenId
         return ERR_INVALID_VALUE;
     }
-    long long tokenId = atoll(static_cast<const char*>(Str16ToStr8(args.at(1)).c_str()));
+    std::string tokenIdStr = Str16ToStr8(args.at(1));
+    uint64_t tokenId = 0;
+    const char *first = tokenIdStr.data();
+    const char *last = first + tokenIdStr.size();
+    auto parseResult = std::from_chars(first, last, tokenId);
     PermissionUsedRequest request;
-    if (tokenId <= 0) {
+    if (parseResult.ec != std::errc{} || parseResult.ptr != last || tokenId == 0 ||
+        tokenId > std::numeric_limits<uint32_t>::max()) {
         return ERR_INVALID_VALUE;
     }
     request.tokenId = static_cast<uint32_t>(tokenId);
